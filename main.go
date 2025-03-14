@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Question struct {
@@ -17,12 +18,13 @@ type Question struct {
 
 type GameState struct {
 	Name      string
+	Theme     string
 	Points    int
 	Questions []Question
 }
 
 func (g *GameState) Init() {
-	fmt.Println("Seja bem vindo ao Quiz")
+	fmt.Printf("Seja bem vindo ao Quiz \n")
 	fmt.Print("\033[33;1m Escreva seu nome:\033[0m\n")
 
 	reader := bufio.NewReader(os.Stdin)
@@ -33,10 +35,32 @@ func (g *GameState) Init() {
 	g.Name = name
 
 	fmt.Printf("Vamos ao jogo %s", g.Name)
-}
 
-func (g *GameState) ProcessCSV() {
-	f, err := os.Open("quiz.csv")
+}
+func (g *GameState) ChangeTheme() {
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Escolha um tema para o jogo")
+	fmt.Println("[1] Historia")
+	fmt.Println("[2] Matemática")
+
+	fmt.Print("Digite o número da sua escolha: ")
+	themeQuiz, _ := reader.ReadString('\n')
+	themeQuiz = strings.TrimSpace(themeQuiz)
+
+	if themeQuiz == "1" {
+		g.Theme = "history"
+	} else if themeQuiz == "2" {
+		g.Theme = "match"
+	} else {
+		fmt.Println("Escolha inválida.")
+		panic("error ao ler arquivo")
+	}
+
+}
+func (g *GameState) ProcessCSV(filename string) {
+	f, err := os.Open(filename)
+
 	if err != nil {
 		panic("error ao ler arquivo")
 	}
@@ -63,7 +87,9 @@ func (g *GameState) ProcessCSV() {
 }
 
 func (g *GameState) Run() {
+
 	for index, question := range g.Questions {
+
 		fmt.Printf("\033[33;1m %d. %s\033[0m\n", index+1, question.Text)
 
 		for j, option := range question.Options {
@@ -85,24 +111,32 @@ func (g *GameState) Run() {
 			}
 			break
 		}
+
 		if answer == question.Answer {
 			fmt.Println("Parabéns você acertou!!")
 			g.Points += 10
 		} else {
 			fmt.Println("Você errou!!")
-			fmt.Println("=============")
+			fmt.Println("===========================")
 		}
 	}
 }
 
 func main() {
 	game := &GameState{Points: 0}
-	go game.ProcessCSV()
+	game.ChangeTheme()
+	go game.ProcessCSV(game.Theme + ".csv")
 	game.Init()
 	game.Run()
 
-	fmt.Printf("Fim de jogo, você fez %d pontos", game.Points)
+	fmt.Printf("Fim de jogo, você fez %d pontos \n", game.Points)
+	if game.Points <= 20 {
+		fmt.Printf("\033[31mCom essa pontuação você está reprovado!\033[0m\n")
+	} else {
+		fmt.Printf("\033[32mCom essa pontuação você está aprovado!\033[0m\n")
+	}
 }
+
 func toInt(s string) (int, error) {
 	i, err := strconv.Atoi(s)
 	if err != nil {
