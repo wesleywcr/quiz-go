@@ -1,4 +1,4 @@
-<h1 align="center"> <strong>🏢 Find Opportunities</strong></h1>
+<h1 align="center"> <strong>Quiz golang</strong></h1>
 
 # 📕 About
 
